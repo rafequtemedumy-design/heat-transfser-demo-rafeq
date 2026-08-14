@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Heat Transfer Radial Conduction Demo</title>
+  <style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #1e293b; color: #fff; margin: 0; padding: 20px; }
+    .controls { margin-bottom: 15px; display: flex; gap: 10px; }
+    button { background: #3b82f6; border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #2563eb; }
+    canvas { background: #0f172a; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+  </style>
+</head>
+<body>
+
+  <h2>Radial Heat Transfer Demonstration</h2>
+  <div class="controls">
+    <button onclick="setShape('wall')">Plane Wall (Linear)</button>
+    <button onclick="setShape('cylinder')">Cylinder (Logarithmic)</button>
+    <button onclick="setShape('sphere')">Sphere (Hyperbolic)</button>
+  </div>
+
+  <canvas id="simCanvas" width="600" height="350"></canvas>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    let shape = 'wall';
+    let offset = 0;
+
+    function setShape(type) {
+      shape = type;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      offset = (offset + 1.5) % 40;
+
+      if (shape === 'wall') {
+        // Draw Wall
+        const grad = ctx.createLinearGradient(100, 0, 500, 0);
+        grad.addColorStop(0, '#ef4444');
+        grad.addColorStop(1, '#3b82f6');
+        ctx.fillStyle = grad;
+        ctx.fillRect(150, 50, 300, 200);
+
+        // Arrows (Constant area)
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 3;
+        for (let y = 80; y <= 220; y += 40) {
+          ctx.beginPath();
+          ctx.moveTo(100 + (offset % 40), y);
+          ctx.lineTo(150 + (offset % 40), y);
+          ctx.stroke();
+        }
+      } else {
+        // Draw Radial (Cylinder / Sphere)
+        const centerX = 300, centerY = 150;
+        const radGrad = ctx.createRadialGradient(centerX, centerY, 30, centerX, centerY, 120);
+        radGrad.addColorStop(0, '#ef4444');
+        radGrad.addColorStop(1, '#3b82f6');
+
+        ctx.fillStyle = radGrad;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 120, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Inner Core
+        ctx.fillStyle = '#f87171';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 30, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Spreading Radial Heat Rays
+        ctx.strokeStyle = '#fef08a';
+        const numRays = shape === 'sphere' ? 16 : 8;
+        for (let i = 0; i < numRays; i++) {
+          const angle = (i * (2 * Math.PI / numRays));
+          const r1 = 35 + (offset % 40);
+          const r2 = r1 + 15;
+          ctx.beginPath();
+          ctx.moveTo(centerX + Math.cos(angle) * r1, centerY + Math.sin(angle) * r1);
+          ctx.lineTo(centerX + Math.cos(angle) * r2, centerY + Math.sin(angle) * r2);
+          ctx.stroke();
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
